@@ -1,0 +1,21 @@
+{
+  "name": "church-monitoring-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for the Church Membership & Attendance Monitoring System",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "bootstrap": "powershell -ExecutionPolicy Bypass -File ./bootstrap.ps1",
+    "dev:backend": "yarn --cwd backend dev",
+    "dev:frontend": "yarn --cwd frontend dev",
+    "dev:ai": "cd ai-service && .\\venv\\Scripts\\activate && uvicorn main:app --reload --port 8000",
+    "dev:all": "concurrently \"yarn dev:backend\" \"yarn dev:frontend\" \"yarn dev:ai\"",
+    "install:all": "yarn install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

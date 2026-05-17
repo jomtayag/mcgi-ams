@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased font-sans overflow-x-hidden;
+    background-image: radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(13, 148, 136, 0.1) 0, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Custom Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-950/20;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-indigo/30 rounded-full hover:bg-brand-indigo/60 transition-colors duration-300;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Panel Wrapper */
+  .glass-card {
+    @apply backdrop-blur-md border border-white/10 bg-slate-900/40 rounded-2xl shadow-glass transition-all duration-300;
+  }
+  .glass-card:hover {
+    @apply border-white/20 shadow-glow bg-slate-900/50;
+  }
+
+  /* Glowing Accent Button */
+  .btn-primary {
+    @apply relative px-5 py-2.5 bg-gradient-to-r from-brand-indigo to-brand-teal text-white font-medium rounded-xl 
+           shadow-md hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden;
+  }
+
+  /* Status Badges */
+  .badge-active {
+    @apply px-3 py-1 text-xs font-semibold rounded-full bg-brand-teal/20 text-teal-400 border border-brand-teal/30;
+  }
+  .badge-inactive {
+    @apply px-3 py-1 text-xs font-semibold rounded-full bg-brand-ruby/20 text-rose-400 border border-brand-ruby/30;
+  }
+  .badge-suspended {
+    @apply px-3 py-1 text-xs font-semibold rounded-full bg-brand-amber/20 text-amber-400 border border-brand-amber/30;
+  }
+}
+
+/* Elegant Micro-animations */
+.animate-hover-grow {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.animate-hover-grow:hover {
+  transform: translateY(-2px);
+}
