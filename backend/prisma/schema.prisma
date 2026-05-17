@@ -1,0 +1,127 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. User Model (System Operators)
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // Hashed bcrypt string
+  role      String   @default("OFFICER") // Values: 'SUPER_ADMIN', 'ELDER', 'OFFICER', 'MEMBER'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Member Model (Church Members)
+model Member {
+  id            String          @id @default(uuid())
+  publicId      String          @unique // e.g., 'M130200001'
+  firstName     String
+  lastName      String
+  middleName    String?
+  alias         String?         // e.g., 'B. Edgar L' or 'S. Lorena T'
+  age           Int
+  gender        String          // Values: 'MALE', 'FEMALE'
+  civilStatus   String          // Values: 'SINGLE', 'MARRIED', 'WIDOWED', 'DIVORCED'
+  contactNumber String?
+  baptismDate   DateTime?
+  status        String          @default("ACTIVE") // Values: 'ACTIVE', 'INACTIVE', 'SUSPENDED', 'DECEASED'
+  isDeceased    Boolean         @default(false)
+  hasChildren   Boolean         @default(false)
+  incomeLevel   String          @default("MEDIUM") // Values: 'LOW', 'MEDIUM', 'HIGH'
+  yearsInChurch Int             @default(0)
+  isDeleted     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relationships
+  addresses     MemberAddress[]
+  groupId       String?
+  group         Group?          @relation("GroupMembers", fields: [groupId], references: [id])
+  ledGroup      Group?          @relation("GroupLeader")
+  attendance    AttendanceRecord[]
+  faceEmbedding FaceEmbedding?
+}
+
+// 3. Address Model (Physical Addresses)
+model Address {
+  id            String          @id @default(uuid())
+  streetAddress String
+  barangay      String          // e.g., 'Lambac', 'Sasmuan', 'Natividad'
+  municipality  String          // e.g., 'Guagua', 'Lubao'
+  province      String          // e.g., 'Pampanga'
+  zipCode       String
+  members       MemberAddress[]
+}
+
+// 4. MemberAddress Junction Model
+model MemberAddress {
+  id          String      @id @default(uuid())
+  memberId    String
+  addressId   String
+  addressType String      @default("PRIMARY") // Values: 'PRIMARY', 'SECONDARY', 'BUSINESS'
+  member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  address     Address     @relation(fields: [addressId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, addressId])
+}
+
+// 5. Group Model (Grace Cell / Cell Groups)
+model Group {
+  id        String   @id @default(uuid())
+  groupName String   @unique // e.g., 'Lambac Grace Cell 1'
+  leaderId  String?  @unique // A member can lead at most one cell group
+  leader    Member?  @relation("GroupLeader", fields: [leaderId], references: [id])
+  members   Member[] @relation("GroupMembers")
+}
+
+// 6. SessionType Model (Custom Sessions like WS, PM, TG)
+model SessionType {
+  id          String              @id @default(uuid())
+  name        String              @unique // e.g., 'Worship Service', 'Prayer Meeting', 'Thanksgiving'
+  shortName   String              @unique // e.g., 'WS', 'PM', 'TG', 'YS'
+  description String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  sessions    AttendanceSession[]
+}
+
+// 7. AttendanceSession Model (Specific services on dates)
+model AttendanceSession {
+  id            String             @id @default(uuid())
+  date          DateTime
+  name          String             // e.g., 'WS - April 4, 2026'
+  sessionTypeId String
+  sessionType   SessionType        @relation(fields: [sessionTypeId], references: [id])
+  records       AttendanceRecord[]
+}
+
+// 8. AttendanceRecord Model (Checklist matrix entries)
+model AttendanceRecord {
+  id        String           @id @default(uuid())
+  memberId  String
+  sessionId String
+  status    String           @default("PRESENT") // Values: 'PRESENT', 'ABSENT', 'TRANSFERRED'
+  method    String           @default("MANUAL") // Values: 'MANUAL', 'BIOMETRIC', 'BARCODE'
+  scannedAt DateTime?
+
+  member    Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, sessionId])
+}
+
+// 9. FaceEmbedding Model (Biometrics templates)
+model FaceEmbedding {
+  id        String   @id @default(uuid())
+  memberId  String   @unique
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  embedding String   @db.Text // Large text buffer for embedding matrix
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
